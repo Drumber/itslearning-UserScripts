@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ImagesInChat
 // @namespace    https://github.com/Drumber
-// @version      0.2.0
+// @version      0.2.1
 // @description  Better chat for itslearning
 // @author       Drumber
 // @match        https://*.itslearning.com/*
@@ -117,6 +117,7 @@ function showImage(eventImage) {
     var ims = img.style; // image style
     ims.maxWidth = "none";
     ims.cursor = "zoom-in";
+    ims.transform = "rotate(0deg)";
     // set width and height of the image and dialog
     ims.width = `${w}px`;
     ims.height = `${h}px`;
@@ -127,33 +128,55 @@ function showImage(eventImage) {
     imgWrapper.style.cssText = "overflow: auto; height: 95%; width: 100%;";
     imgWrapper.appendChild(img);
 
+    var btnStyle = "color: #ffffff; font-size: 24px; background: 0; border: none;";
     // close button
     var closeBtn = document.createElement("button");
     closeBtn.innerHTML = "&#x2715;";
-    closeBtn.style.cssText = "color: #ffffff; font-size: 24px; position: absolute; right: 8px; top: 8px; background: 0; border: none;";
-    closeBtn.position = "absolute";
+    closeBtn.style.cssText = btnStyle;
     closeBtn.onclick = function() {
         document.body.removeChild(dialog); // remove dialog
     }
+
+    // rotate left button
+    var rotateLbtn = document.createElement("button");
+    rotateLbtn.style.cssText = btnStyle;
+    rotateLbtn.innerHTML = "&#x21BA;";
+    rotateLbtn.onclick = function() {
+        var oldAngle = parseInt(ims.transform.replace("rotate(", "").replace("deg)", ""));
+        ims.transform = `rotate(${oldAngle - 90}deg)`;
+    }
+
+    // rotate right button
+    var rotateRbtn = document.createElement("button");
+    rotateRbtn.style.cssText = btnStyle;
+    rotateRbtn.innerHTML = "&#x21BB;";
+    rotateRbtn.onclick = function() {
+        var oldAngle = parseInt(ims.transform.replace("rotate(", "").replace("deg)", ""));
+        ims.transform = `rotate(${oldAngle + 90}deg)`;
+    }
+
     var dialogHead = document.createElement("div");
-    dialogHead.style.width = "100%";
-    dialogHead.style.height = "30px";
+    dialogHead.style.cssText = "width: 100%; height: 30px; display: flex; padding-bottom: 5px; flex-direction: row; flex-wrao: nowrap; justify-content: flex-end;";
+    dialogHead.appendChild(rotateLbtn);
+    dialogHead.appendChild(rotateRbtn);
     dialogHead.appendChild(closeBtn);
 
     dialog.appendChild(dialogHead);
     dialog.appendChild(imgWrapper);
 
     // add zoom on image click
-    img.onclick = function() {
+    img.onclick = function(e) {
         if(ims.width != `${w}px`) {
             // reset image size
             ims.width = `${w}px`;
             ims.height = `${h}px`;
         } else {
             var scaleFactor = 2;
-            //ims.transform = `scale(${scaleFactor})`;
             ims.width = `${w * scaleFactor}px`;
             ims.height = `${h * scaleFactor}px`;
+
+            // scroll to click position
+            imgWrapper.scrollTo(e.x, e.y);
 
             img.addEventListener('mousemove', function moveListener(e) {
                 // remove listener
@@ -161,17 +184,10 @@ function showImage(eventImage) {
                     img.removeEventListener('mousemove', moveListener);
                     return;
                 }
-                // scroll to mouse position
-                var x = e.clientX + 200;
-                var y = e.clientY + 200;
-                if(e.clientX < window.innerWidth / 2) {
-                    x = e.clientX - 200;
-                }
-                if(e.clientY < window.innerHeight / 2) {
-                    y = e.clientY - 200;
-                }
-                // TODO: improve scroll
-                imgWrapper.scrollTo(x, y);
+                // scroll to mouse pos
+                var deltaX = (e.x - window.innerWidth / 2) / 2;
+                var deltaY = (e.y - window.innerHeight / 2) / 2;
+                imgWrapper.scrollBy(deltaX, deltaY);
             });
         }
     }
