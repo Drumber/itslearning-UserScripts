@@ -5,3 +5,6 @@ UserScripts to improve the experience on itslearning.
 ## Installtion
 1. Install [Tampermonkey for Firefox](https://tampermonkey.net/?ext=dhdg&browser=firefox), [Chrome](https://tampermonkey.net/?ext=dhdg&browser=chrome), [Opera](https://tampermonkey.net/?ext=dhdg&browser=opera) or [Safari](https://tampermonkey.net/?ext=dhdg&browser=safari).
 2. Install [itslearning-ImagesInChat.user.js](https://raw.githubusercontent.com/Drumber/itslearning-UserScripts/master/itslearning-ImagesInChat.user.js)
+
+##
+Check out my [Dark-Theme for itslearning](https://github.com/Drumber/Dark-itslearning).
