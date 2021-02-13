@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ImagesInChat
 // @namespace    https://github.com/Drumber
-// @version      0.2.2
+// @version      0.2.3
 // @description  Better chat for itslearning
 // @author       Drumber
 // @match        https://*.itslearning.com/*
@@ -31,6 +31,12 @@ GM_config.init(
         'image-viewer':
         {
             'label': 'Enable image viewer',
+            'type': 'checkbox',
+            'default': 'true'
+        },
+        'lazy-loading':
+        {
+            'label': 'Image lazy-loading',
             'type': 'checkbox',
             'default': 'true'
         }
@@ -67,8 +73,10 @@ function processMessageElement(jNode) {
             var img = document.createElement("img");
             img.src = imgUrl;
             // TODO: maybe reduce image size
-            // lazy loading on supported browsers
-            img.loading = "lazy";
+            if(GM_config.get('lazy-loading')) {
+                // lazy loading on supported browsers
+                img.loading = "lazy";
+            }
             // set onclick event if image-viewer is enabled
             if(GM_config.get('image-viewer')) {
                 img.onclick = function() {
