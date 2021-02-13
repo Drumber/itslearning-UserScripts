@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ImagesInChat
 // @namespace    https://github.com/Drumber
-// @version      0.2.1
+// @version      0.2.2
 // @description  Better chat for itslearning
 // @author       Drumber
 // @match        https://*.itslearning.com/*
@@ -67,6 +67,8 @@ function processMessageElement(jNode) {
             var img = document.createElement("img");
             img.src = imgUrl;
             // TODO: maybe reduce image size
+            // lazy loading on supported browsers
+            img.loading = "lazy";
             // set onclick event if image-viewer is enabled
             if(GM_config.get('image-viewer')) {
                 img.onclick = function() {
@@ -87,6 +89,7 @@ function processMessageElement(jNode) {
 
 function showImage(eventImage) {
     var img = eventImage.cloneNode(true); // clone image element
+    img.loading = "eager"; // load image right away
 
     // remove any existing dialog
     var existingDialog = document.getElementById("custom-image-viewer");
