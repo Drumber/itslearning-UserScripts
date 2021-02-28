@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ImagesInChat
 // @namespace    https://github.com/Drumber
-// @version      0.2.4
+// @version      0.2.5
 // @description  Better chat for itslearning
 // @author       Drumber
 // @match        https://*.itslearning.com/*
@@ -45,6 +45,12 @@ GM_config.init(
             'label': 'Paste images in chat (Chrome only)',
             'type': 'checkbox',
             'default': 'true'
+        },
+        'image-drop':
+        {
+            'label': 'Drag & Drop files in chat',
+            'type': 'checkbox',
+            'default': 'true'
         }
     },
     'events': // callback functions
@@ -59,9 +65,11 @@ GM_config.init(
     'use strict';
     console.log("Images-In-Chat script is activated...");
     // trigger function when a message element was found
-    waitForKeyElements(".c-messages__attachment .c-messages__attachment-content", processMessageElement)
+    waitForKeyElements(".c-messages__attachment .c-messages__attachment-content", processMessageElement);
     // add file paste listener
     window.addEventListener("paste", (event) => onPasteEvent(event), false);
+    // add file-drop listener when message body was added
+    waitForKeyElements(".c-messages__body.c-messages__body--scroll.c-conversation", onMessageBodyAdded);
 })();
 
 function processMessageElement(jNode) {
@@ -236,6 +244,61 @@ function showImage(eventImage) {
 }
 
 
+function onMessageBodyAdded(jNode) {
+    var msgBody = jNode[0];
+    if(msgBody) {
+        msgBody.addEventListener("drop", dropHandler);
+        msgBody.addEventListener("dragover", dragOverHandler);
+        msgBody.addEventListener("dragleave", dragEndHandler);
+        msgBody.addEventListener("dragend", dragEndHandler);
+        msgBody.addEventListener("drop", dragEndHandler);
+    }
+}
+
+function dropHandler(e) {
+    if(!GM_config.get('image-drop')) return;
+    e.preventDefault();
+    // get list of drop items
+    var items = e.dataTransfer.items;
+    if(items) {
+        // use DataTransferItemList interface
+        for(var i = 0; i < items.length; i++) {
+            if(items[i].kind != "file") continue; // continue if item is not a file
+            var blob = items[i].getAsFile();
+            sendFileBlob(blob);
+        }
+    } else {
+        // use DataTransfer interface
+        var files = e.dataTransfer.files;
+        for(var j = 0; j < files.length; j++) {
+            sendFileBlob(files[j]);
+        }
+    }
+}
+
+function dragOverHandler(e) {
+    if(!GM_config.get('image-drop')) return;
+    e.preventDefault();
+    // show drop effect
+    e.dataTransfer.dropEffect = "copy";
+    if(document.getElementById("drop-overlay")) return; // return if overlay already exists
+    // add semi transparent filter
+    var msgBody = document.getElementsByClassName("c-messages__body c-messages__body--scroll c-conversation")[0];
+    if(msgBody) {
+        msgBody.style.filter = "opacity(70%) blur(2px)";
+    }
+}
+
+function dragEndHandler(e) {
+    if(!GM_config.get('image-drop')) return;
+    e.preventDefault();
+    var msgBody = document.getElementsByClassName("c-messages__body c-messages__body--scroll c-conversation")[0];
+    if(msgBody) {
+        msgBody.style.filter = "none";
+    }
+}
+
+
 /* Gets triggered when user tries to paste something. Works only on Chrome based browsers.
  * If the pasted file is an image, it will be send as an attachment. */
 function onPasteEvent(pasteEvent) {
@@ -244,20 +307,23 @@ function onPasteEvent(pasteEvent) {
     for(var i = 0; i < items.length; i++) {
         if(items[i].type.indexOf("image") == -1) continue; // continue if file is not an image
         var blob = items[i].getAsFile();
-        console.log(blob);
-        // constuct object to simulate a FileList
-        var fileList = [blob];
-        var fileObj = {files: fileList};
+        sendFileBlob(blob);
+    }
+}
 
-        var bindings = getSendBtnBinding();
-        if(bindings.userCanSendMessagesInThread() == true) {
-            // t: object contains 'input' element with type 'file'
-            // r: undefined
-            // i: 2665 (?)
-            // o: undefined
-            // c: undefined
-            bindings.uploadAttachments(fileObj, undefined, 2665, undefined, undefined);
-        }
+function sendFileBlob(blob) {
+    // constuct object to simulate a FileList
+    var fileList = [blob];
+    var fileObj = {files: fileList};
+
+    var bindings = getSendBtnBinding();
+    if(bindings.userCanSendMessagesInThread() == true) {
+        // t: object contains 'input' element with type 'file'
+        // r: undefined
+        // i: 2665 (?)
+        // o: undefined
+        // c: undefined
+        bindings.uploadAttachments(fileObj, undefined, 2665, undefined, undefined);
     }
 }
 
