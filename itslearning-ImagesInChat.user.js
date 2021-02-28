@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ImagesInChat
 // @namespace    https://github.com/Drumber
-// @version      0.2.3
+// @version      0.2.4
 // @description  Better chat for itslearning
 // @author       Drumber
 // @match        https://*.itslearning.com/*
@@ -39,6 +39,12 @@ GM_config.init(
             'label': 'Image lazy-loading',
             'type': 'checkbox',
             'default': 'true'
+        },
+        'image-paste':
+        {
+            'label': 'Paste images in chat (Chrome only)',
+            'type': 'checkbox',
+            'default': 'true'
         }
     },
     'events': // callback functions
@@ -54,6 +60,8 @@ GM_config.init(
     console.log("Images-In-Chat script is activated...");
     // trigger function when a message element was found
     waitForKeyElements(".c-messages__attachment .c-messages__attachment-content", processMessageElement)
+    // add file paste listener
+    window.addEventListener("paste", (event) => onPasteEvent(event), false);
 })();
 
 function processMessageElement(jNode) {
@@ -226,3 +234,45 @@ function showImage(eventImage) {
         }
     }
 }
+
+
+/* Gets triggered when user tries to paste something. Works only on Chrome based browsers.
+ * If the pasted file is an image, it will be send as an attachment. */
+function onPasteEvent(pasteEvent) {
+    var items = pasteEvent.clipboardData.items;
+    if(!items || !GM_config.get('image-paste')) return;
+    for(var i = 0; i < items.length; i++) {
+        if(items[i].type.indexOf("image") == -1) continue; // continue if file is not an image
+        var blob = items[i].getAsFile();
+        console.log(blob);
+        // constuct object to simulate a FileList
+        var fileList = [blob];
+        var fileObj = {files: fileList};
+
+        var bindings = getSendBtnBinding();
+        if(bindings.userCanSendMessagesInThread() == true) {
+            // t: object contains 'input' element with type 'file'
+            // r: undefined
+            // i: 2665 (?)
+            // o: undefined
+            // c: undefined
+            bindings.uploadAttachments(fileObj, undefined, 2665, undefined, undefined);
+        }
+    }
+}
+
+function getSendBtnBinding() {
+    var btn = document.getElementsByClassName("c-modern__button c-modern__button--confirm u-fr u-no-wrap js-im-send")[0];
+    return ko.dataFor(btn);
+}
+
+
+// Get all functions which were binded using knockout.js
+// interesting code lines: instantmessageapp.js line 4122
+    // first we need some element that has a binding, e.g. the 'send' button
+    //var sendBtn = document.getElementsByClassName("c-modern__button c-modern__button--confirm u-fr u-no-wrap js-im-send")[0];
+    // next we get the data from knockout
+    //var data = ko.dataFor(sendBtn);
+
+// other solution to access all kinds of api functions: require.s.contexts._.defined
+// e.g.: require.s.contexts._.defined["js/utils/instantmessage-api"]
