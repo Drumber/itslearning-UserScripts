@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ImagesInChat
 // @namespace    https://github.com/Drumber
-// @version      0.2.5
+// @version      0.2.6
 // @description  Better chat for itslearning
 // @author       Drumber
 // @match        https://*.itslearning.com/*
@@ -49,6 +49,12 @@ GM_config.init(
         'image-drop':
         {
             'label': 'Drag & Drop files in chat',
+            'type': 'checkbox',
+            'default': 'true'
+        },
+        'send-on-enter':
+        {
+            'label': 'Send message with Enter',
             'type': 'checkbox',
             'default': 'true'
         }
@@ -247,11 +253,19 @@ function showImage(eventImage) {
 function onMessageBodyAdded(jNode) {
     var msgBody = jNode[0];
     if(msgBody) {
+        // set up file drop events
         msgBody.addEventListener("drop", dropHandler);
         msgBody.addEventListener("dragover", dragOverHandler);
         msgBody.addEventListener("dragleave", dragEndHandler);
         msgBody.addEventListener("dragend", dragEndHandler);
         msgBody.addEventListener("drop", dragEndHandler);
+
+        // set up send on enter events
+        var msgFields = document.getElementsByClassName("emoji-wysiwyg-editor instant-message-editor");
+        for(var i = 0; i < msgFields.length; i++) {
+            var field = msgFields[i];
+            field.addEventListener("keydown", onMessagesKey);
+        }
     }
 }
 
@@ -326,6 +340,18 @@ function sendFileBlob(blob) {
         bindings.uploadAttachments(fileObj, undefined, 2665, undefined, undefined);
     }
 }
+
+
+function onMessagesKey(e) {
+    if(e.shiftKey || !GM_config.get('send-on-enter')) return; // do nothing if shift key is pressed or feature is disabled
+    if(e.keyCode === 13 || e.key === "Enter") {
+        var btn = document.getElementsByClassName("c-modern__button c-modern__button--confirm u-fr u-no-wrap js-im-send")[0];
+        if(btn) {
+            btn.click();
+        }
+    }
+}
+
 
 function getSendBtnBinding() {
     var btn = document.getElementsByClassName("c-modern__button c-modern__button--confirm u-fr u-no-wrap js-im-send")[0];
