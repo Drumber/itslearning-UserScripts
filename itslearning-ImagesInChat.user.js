@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ImagesInChat
 // @namespace    https://github.com/Drumber
-// @version      0.2.6
+// @version      0.2.7
 // @description  Better chat for itslearning
 // @author       Drumber
 // @match        https://*.itslearning.com/*
@@ -332,12 +332,13 @@ function sendFileBlob(blob) {
 
     var bindings = getSendBtnBinding();
     if(bindings.userCanSendMessagesInThread() == true) {
+        var threadId = bindings.params.currentThread().instantMessageThreadId;
         // t: object contains 'input' element with type 'file'
         // r: undefined
-        // i: 2665 (?)
+        // i: thread id
         // o: undefined
         // c: undefined
-        bindings.uploadAttachments(fileObj, undefined, 2665, undefined, undefined);
+        bindings.uploadAttachments(fileObj, undefined, threadId, undefined, undefined);
     }
 }
 
