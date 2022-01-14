@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MiddleClick
 // @namespace    https://github.com/Drumber
-// @version      0.1.0
+// @version      0.1.1
 // @description  Middle click iframe content
 // @author       Drumber
 // @match        https://*.itslearning.com/*
@@ -49,10 +49,10 @@ function processQueryParams() {
 function setupClickEventInterceptor(windowEl, iframeId) {
     // source: https://stackoverflow.com/a/62311399/12821118
     windowEl.addEventListener("auxclick", (event) => {
-        console.log(event);
-        if (event.button === 1 && shouldBlockActionForElement(event.target)) {
+        const anchor = event.target.closest("a");
+        if (event.button === 1 && anchor && shouldBlockActionForElement(anchor)) {
             event.preventDefault();
-            handleMiddleClick(event.target, iframeId);
+            handleMiddleClick(anchor, iframeId);
         }
     });
 }
@@ -62,12 +62,7 @@ function setupClickEventInterceptor(windowEl, iframeId) {
  * itslearning subpage.
  */
 function shouldBlockActionForElement(el) {
-    console.log("check", el);
-    if (el.nodeName == "A") {
-        return el.hostname == location.hostname;
-    }
-    const closestAnchor = el.closest("a");
-    return closestAnchor && shouldBlockActionForElement(closestAnchor);
+    return el.nodeName == "A" && el.hostname == location.hostname;
 }
 
 function handleMiddleClick(el, iframeId) {
@@ -75,10 +70,13 @@ function handleMiddleClick(el, iframeId) {
         // itslearning uses the target attribute on anchor tags to load the content in the target iframe
         // e.g. <a href="..." target="mainmenu"> targets iframe <iframe id="..." name="mainmenu">
         const target = el.target;
-        iframeId = document.querySelector(`[name=${target}]`).id;
+        const iframe = document.querySelector(`[name=${target}]`);
+        if (iframe) {
+            iframeId = iframe.id;
+        }
     }
     const contentUrl = el.href;
-    if (iframeId && contentUrl) {
+    if (iframeId && contentUrl && el.target !== "_top" && el.target !== "_blank") {
         cloneWindowForIFrame(iframeId, contentUrl);
     } else {
         // backup: normal behaviour
