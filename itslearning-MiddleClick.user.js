@@ -5,6 +5,8 @@
 // @description  Middle click iframe content
 // @author       Drumber
 // @match        https://*.itslearning.com/*
+// @updateURL    https://github.com/Drumber/itslearning-UserScripts/raw/master/itslearning-MiddleClick.user.js
+// @downloadURL  https://github.com/Drumber/itslearning-UserScripts/raw/master/itslearning-MiddleClick.user.js
 // @require      https://gist.github.com/raw/2625891/waitForKeyElements.js
 // @grant        GM_openInTab
 // @noframes
