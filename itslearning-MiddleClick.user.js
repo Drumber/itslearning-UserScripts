@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MiddleClick
 // @namespace    https://github.com/Drumber
-// @version      0.1.1
+// @version      0.1.2
 // @description  Middle click iframe content
 // @author       Drumber
 // @match        https://*.itslearning.com/*
@@ -19,7 +19,9 @@
     setupClickEventInterceptor(window);
     waitForKeyElements("iframe", (jNode) => {
         const iframe = jNode[0]
-        setupClickEventInterceptor(iframe.contentWindow, iframe.id);
+        iframe.addEventListener("load", (event) => {
+            setupClickEventInterceptor(event.target.contentWindow, iframe.id);
+        })
     });
 })();
 
