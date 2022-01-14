@@ -11,3 +11,6 @@ UserScripts to improve the experience on itslearning.
 
 ##
 Check out my [Dark-Theme for itslearning](https://github.com/Drumber/Dark-itslearning).
+
+## License
+This work is licensed under a Creative [Commons Attribution-NonCommercial-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-nc-sa/4.0/).
