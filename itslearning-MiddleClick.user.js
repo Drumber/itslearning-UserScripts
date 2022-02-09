@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MiddleClick
 // @namespace    https://github.com/Drumber
-// @version      0.1.2
+// @version      0.1.3
 // @description  Middle click iframe content
 // @author       Drumber
 // @match        https://*.itslearning.com/*
@@ -9,6 +9,7 @@
 // @downloadURL  https://github.com/Drumber/itslearning-UserScripts/raw/master/itslearning-MiddleClick.user.js
 // @require      https://gist.github.com/raw/2625891/waitForKeyElements.js
 // @grant        GM_openInTab
+// @grant        GM_addStyle
 // @noframes
 // ==/UserScript==
 
@@ -21,8 +22,29 @@
         const iframe = jNode[0]
         iframe.addEventListener("load", (event) => {
             setupClickEventInterceptor(event.target.contentWindow, iframe.id);
+            // add navbar shortcut listener to iframe
+            addNavBarToggleShortcut(event.target.contentWindow);
         })
     });
+
+    addNavBarToggleButton();
+    addNavBarToggleShortcut(document);
+
+    GM_addStyle(`
+    .hidden {
+        display: none;
+    }
+    #nav-toggle-btn {
+        width: fit-content;
+        margin-left: auto;
+        font-size: 0.7em;
+        line-height: 0.7em;
+        cursor: pointer;
+        background-color: rgba(0,0,0,0.1);
+        padding: 4px;
+        border-radius: 4px;
+    }
+    `);
 })();
 
 /**
@@ -98,5 +120,41 @@ function openTab(url) {
         active: false,
         insert: true,
         setParent: true
+    });
+}
+
+/**
+ * Toggle main und course navigation bars.
+ */
+function toggleNavigationBars() {
+    const mainNav = document.getElementById("l-header");
+    const isHidden = mainNav.classList.toggle("hidden");
+    const subNav = document.getElementById("ctl00_TopNavigationContainer");
+    if (subNav) {
+        subNav.classList.toggle("hidden")
+    }
+
+    // trigger window resize event to trigger iframe height recalculation
+    window.dispatchEvent(new Event('resize'))
+
+    // update button text
+    document.getElementById("nav-toggle-btn").innerText = isHidden ? "Show Navbar" : "Hide Navbar";
+}
+
+function addNavBarToggleButton() {
+    const btn = document.createElement("div");
+    btn.id = "nav-toggle-btn";
+    btn.innerText = "Hide Navbar";
+    btn.onclick = () => toggleNavigationBars();
+
+    const navBar = document.getElementById("ctl00_TopNavigationContainer") || document.getElementById("l-header");
+    navBar.parentNode.insertBefore(btn, navBar.nextSibling);
+}
+
+function addNavBarToggleShortcut(windowEl) {
+    windowEl.addEventListener("keyup", (e) => {
+        if (e.ctrlKey && e.key === ".") {
+            toggleNavigationBars();
+        }
     });
 }
