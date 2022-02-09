@@ -2,6 +2,7 @@
 UserScripts to improve the experience on itslearning.
 - ImagesInChat: adds a image preview to the chat and support drag-and-drop for uploading files
 - MiddleClick: fixes the middle-click action for opening itslearning pages in a new tab
+    - Keyboard shortcut to hide navigation bar: `Ctrl` + `.`
 
 ## Installtion
 1. Install [Tampermonkey for Firefox](https://tampermonkey.net/?ext=dhdg&browser=firefox), [Chrome](https://tampermonkey.net/?ext=dhdg&browser=chrome), [Opera](https://tampermonkey.net/?ext=dhdg&browser=opera) or [Safari](https://tampermonkey.net/?ext=dhdg&browser=safari).
